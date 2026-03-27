@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './App.css';
 
 // We will import screens as we create them. Right now, using placeholders.
 import WelcomeScreen from './screens/WelcomeScreen';
