@@ -10,6 +10,11 @@ import LearnScreen from './screens/LearnScreen';
 
 // Games
 import Game1HearType from './games/Game1HearType';
+import Game2DragDrop from './games/Game2DragDrop';
+import Game3MissingLetter from './games/Game3MissingLetter';
+import Game4PhonicsBuilder from './games/Game4PhonicsBuilder';
+import Game5SpellRunner from './games/Game5SpellRunner';
+import Game6VoiceRepeat from './games/Game6VoiceRepeat';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState('welcome-screen');
@@ -54,7 +59,11 @@ function App() {
       {currentScreen === 'learn-screen' && <LearnScreen onNavigate={navigate} />}
 
       {currentScreen === 'game1-screen' && <Game1HearType onExit={exitGame} />}
-      {/* We will add Game2, Game3, etc later */}
+      {currentScreen === 'game2-screen' && <Game2DragDrop onExit={exitGame} />}
+      {currentScreen === 'game3-screen' && <Game3MissingLetter onExit={exitGame} />}
+      {currentScreen === 'game4-screen' && <Game4PhonicsBuilder onExit={exitGame} />}
+      {currentScreen === 'game5-screen' && <Game5SpellRunner onExit={exitGame} />}
+      {currentScreen === 'game6-screen' && <Game6VoiceRepeat onExit={exitGame} />}
       
     </div>
   );
