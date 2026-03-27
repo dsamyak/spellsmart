@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SpellSmart 🔤 – Learn Spelling with Phonics</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ===== CSS VARIABLES ===== */
+:root {
+  --coral:    #FF6B6B;
+  --teal:     #4ECDC4;
+  --yellow:   #FFE66D;
+  --purple:   #A29BFE;
+  --pink:     #FD79A8;
+  --mint:     #55EFC4;
+  --sky:      #74B9FF;
+  --orange:   #FDCB6E;
+  --bg:       #FFF8F0;
+  --card:     #FFFFFF;
+  --text:     #2D3436;
+  --text-lt:  #636E72;
+  --border:   #F0E6FF;
+  --radius:   22px;
+  --radius-sm:12px;
+  --font:     'Baloo 2', cursive;
+  --body:     'Poppins', sans-serif;
+  --shadow:   0 8px 32px rgba(162,155,254,0.18);
+  --shadow-sm:0 3px 12px rgba(162,155,254,0.12);
+}
+
+/* ===== RESET ===== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+button{cursor:pointer;font-family:var(--body);outline:none}
+
+/* ===== FLOATING BG LETTERS ===== */
+.bg-letters{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bg-letter{
+  position:absolute;font-family:var(--font);font-weight:400;
+  opacity:0.06;animation:floatLetter linear infinite;user-select:none;
+}
+@keyframes floatLetter{0%{transform:translateY(110vh) rotate(0deg)}100%{transform:translateY(-20vh) rotate(360deg)}}
+
+/* ===== SCREENS ===== */
+.screen{display:none;position:relative;z-index:1;min-height:100vh;padding:20px 16px;animation:fadeIn 0.4s ease}
+.screen.active{display:flex;flex-direction:column;align-items:center}
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== COMMON COMPONENTS ===== */
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;border:2px solid var(--border)}
+.btn{
+  font-family:var(--font);font-size:1.05rem;padding:13px 30px;border-radius:50px;
+  border:none;transition:all 0.2s;position:relative;overflow:hidden;
+  letter-spacing:0.5px;
+}
+.btn::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,0.22);opacity:0;transition:opacity 0.2s}
+.btn:hover::after{opacity:1}
+.btn:active{transform:scale(0.95)}
+.btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.15)}
+.btn-coral{background:linear-gradient(135deg,var(--coral),#FF8E8E);color:#fff;box-shadow:0 4px 14px rgba(255,107,107,0.4)}
+.btn-teal{background:linear-gradient(135deg,var(--teal),#6EDDD6);color:#fff;box-shadow:0 4px 14px rgba(78,205,196,0.4)}
+.btn-purple{background:linear-gradient(135deg,var(--purple),#C3BEF0);color:#fff;box-shadow:0 4px 14px rgba(162,155,254,0.4)}
+.btn-yellow{background:linear-gradient(135deg,var(--yellow),#FFD000);color:var(--text);box-shadow:0 4px 14px rgba(255,230,109,0.5)}
+.btn-pink{background:linear-gradient(135deg,var(--pink),#FFA8C5);color:#fff;box-shadow:0 4px 14px rgba(253,121,168,0.4)}
+.btn-outline{background:transparent;border:2.5px solid var(--purple);color:var(--purple)}
+.btn-ghost{background:none;border:none;color:var(--text-lt);font-family:var(--body);font-weight:700;font-size:0.95rem;padding:6px 4px;letter-spacing:0}
+.btn-ghost:hover{color:var(--coral);transform:none;box-shadow:none}
+.btn-ghost:hover::after{opacity:0}
+
+/* ===== LOGO ===== */
+.logo{font-family:var(--font);font-size:clamp(2.2rem,7vw,3.8rem);background:linear-gradient(135deg,var(--coral),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-align:center;line-height:1.1}
+.subtitle{font-size:1rem;color:var(--text-lt);text-align:center;margin-top:6px;font-weight:700}
+
+/* ===== HUD BAR ===== */
+.hud{width:100%;max-width:680px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px}
+.hud-chip{background:var(--card);border-radius:50px;padding:6px 14px;font-weight:800;font-size:0.88rem;display:flex;align-items:center;gap:5px;box-shadow:var(--shadow-sm);border:2px solid var(--border)}
+.hud-chip .ic{font-size:1rem}
+
+/* ===== XP BAR ===== */
+.xp-wrap{width:100%;max-width:340px;background:var(--border);border-radius:50px;height:10px;overflow:hidden}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--coral),var(--purple));border-radius:50px;transition:width 0.6s ease}
+
+/* ===== LEVEL CARDS ===== */
+.level-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:18px;width:100%;max-width:640px;margin-top:28px}
+.level-card{background:var(--card);border-radius:var(--radius);padding:26px 18px;text-align:center;cursor:pointer;border:3px solid transparent;transition:all 0.25s;box-shadow:var(--shadow-sm)}
+.level-card:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+.level-card.selected{border-color:var(--coral);background:#FFF2F2}
+.level-card .lc-emoji{font-size:2.8rem;margin-bottom:8px}
+.level-card h3{font-family:var(--font);font-size:1.1rem;color:var(--text)}
+.level-card p{font-size:0.82rem;color:var(--text-lt);margin-top:4px;font-weight:600}
+
+/* ===== GAME MENU CARDS ===== */
+.games-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:14px;width:100%;max-width:780px;margin-top:16px}
+.game-card{background:var(--card);border-radius:var(--radius);padding:18px 12px;text-align:center;cursor:pointer;border:2.5px solid var(--border);transition:all 0.25s;box-shadow:var(--shadow-sm)}
+.game-card:hover{transform:translateY(-5px);box-shadow:var(--shadow);border-color:var(--purple)}
+.game-card .gc-icon{font-size:2rem;margin-bottom:7px}
+.game-card h4{font-family:var(--font);font-size:0.88rem;color:var(--text);line-height:1.3}
+.game-card .gc-tag{font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:50px;margin-top:6px;display:inline-block}
+
+/* ===== WORD DISPLAY ===== */
+.word-display{font-family:var(--font);font-size:clamp(2.4rem,9vw,4.2rem);letter-spacing:0.08em;text-align:center;color:var(--text)}
+.word-hint{font-size:1rem;font-weight:700;color:var(--text-lt);text-align:center;margin-top:6px}
+
+/* ===== PHONICS BLOCKS ===== */
+.phonics-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0}
+.ph-block{
+  font-family:var(--font);font-size:1.3rem;padding:10px 16px;border-radius:var(--radius-sm);
+  border:3px solid transparent;transition:all 0.3s;cursor:default;user-select:none;
+  box-shadow:var(--shadow-sm);min-width:48px;text-align:center;
+}
+.ph-block.vowel{background:#E3F5FF;color:#0984E3;border-color:#BAE6FD}
+.ph-block.consonant{background:#FFF0F0;color:var(--coral);border-color:#FFCDD2}
+.ph-block.blend{background:#F3F0FF;color:var(--purple);border-color:#DDD6FE}
+.ph-block.digraph{background:#E6FAF8;color:#00B894;border-color:#C2F0EA}
+.ph-block.active{transform:scale(1.15);box-shadow:0 6px 20px rgba(0,0,0,0.18)}
+.ph-block.done{opacity:0.45}
+
+/* ===== LETTER TILES ===== */
+.letter-tile{
+  width:52px;height:52px;border-radius:14px;font-family:var(--font);font-size:1.5rem;
+  display:flex;align-items:center;justify-content:center;cursor:grab;
+  transition:all 0.2s;user-select:none;border:3px solid transparent;
+  box-shadow:0 4px 10px rgba(0,0,0,0.12);
+}
+.letter-tile:hover{transform:scale(1.1)}
+.letter-tile.dragging{opacity:0.4;cursor:grabbing}
+.letter-tile[data-type="vowel"]{background:linear-gradient(135deg,#74B9FF,#A8D8FF);color:#fff}
+.letter-tile[data-type="consonant"]{background:linear-gradient(135deg,var(--coral),#FF9A9A);color:#fff}
+
+.drop-slot{
+  width:52px;height:52px;border-radius:14px;border:3px dashed var(--purple);
+  background:#F8F6FF;display:flex;align-items:center;justify-content:center;
+  font-family:var(--font);font-size:1.5rem;transition:all 0.2s;
+}
+.drop-slot.over{border-color:var(--coral);background:#FFF2F2;transform:scale(1.08)}
+.drop-slot.filled{border-style:solid;border-color:var(--teal);background:#E6FAF8}
+.drop-slot.correct-slot{background:#E6FAF8;border-color:var(--mint)}
+.drop-slot.wrong-slot{background:#FFE8E8;border-color:var(--coral)}
+
+/* ===== MISSING LETTER ===== */
+.word-blanks{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:16px 0}
+.wl-char{font-family:var(--font);font-size:2.2rem;width:50px;height:60px;display:flex;align-items:center;justify-content:center;border-radius:12px}
+.wl-char.blank{background:#F3F0FF;border:3px dashed var(--purple);color:transparent}
+.wl-char.blank.active{border-color:var(--coral);animation:pulse 1s ease infinite}
+.wl-char.filled-correct{background:#E6FAF8;border:3px solid var(--teal);color:#00B894}
+.wl-char.filled-wrong{background:#FFE8E8;border:3px solid var(--coral);color:var(--coral);animation:shakeX 0.4s ease}
+.letter-choices{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.choice-btn{
+  width:56px;height:56px;border-radius:14px;font-family:var(--font);font-size:1.4rem;
+  border:3px solid var(--border);background:var(--card);transition:all 0.2s;
+  box-shadow:var(--shadow-sm);color:var(--text);
+}
+.choice-btn:hover{border-color:var(--purple);background:#F3F0FF;transform:scale(1.1)}
+.choice-btn.used{opacity:0.3;pointer-events:none}
+.choice-btn.correct{background:var(--mint);border-color:var(--teal);color:#fff}
+.choice-btn.wrong{background:#FF8E8E;border-color:var(--coral);color:#fff;animation:shakeX 0.4s ease}
+
+/* ===== PHONICS BUILDER ===== */
+.ph-builder-pool{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:64px;padding:10px;background:#F8F6FF;border-radius:var(--radius-sm);border:2px solid var(--border)}
+.ph-builder-answer{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;min-height:64px;padding:10px;background:#FFFBEE;border-radius:var(--radius-sm);border:2px dashed var(--yellow)}
+.ph-clickable{
+  font-family:var(--font);font-size:1.2rem;padding:10px 18px;border-radius:var(--radius-sm);
+  border:3px solid transparent;cursor:pointer;transition:all 0.2s;user-select:none;
+  box-shadow:var(--shadow-sm);
+}
+.ph-clickable:hover{transform:scale(1.08)}
+.ph-clickable.pool-item.vowel{background:#E3F5FF;color:#0984E3;border-color:#BAE6FD}
+.ph-clickable.pool-item.consonant{background:#FFF0F0;color:var(--coral);border-color:#FFCDD2}
+.ph-clickable.pool-item.blend{background:#F3F0FF;color:var(--purple);border-color:#DDD6FE}
+.ph-clickable.pool-item.digraph{background:#E6FAF8;color:#00B894;border-color:#C2F0EA}
+.ph-clickable.ans-item{background:var(--yellow);color:var(--text);border-color:#E6AC00}
+.ph-progress{font-family:var(--font);font-size:1.1rem;text-align:center;margin:8px 0;color:var(--text-lt)}
+
+/* ===== SPEED RUNNER ===== */
+.runner-arena{
+  width:100%;max-width:620px;height:170px;border-radius:var(--radius);overflow:hidden;
+  position:relative;box-shadow:var(--shadow);border:3px solid var(--border);
+  background:linear-gradient(180deg,#A8EDEA 0%,#FED6E3 55%,#9AE9CF 55%,#6FD4A8 100%);
+}
+.runner-sky{position:absolute;top:0;left:0;right:0;height:54%;overflow:hidden}
+.runner-cloud{position:absolute;top:8px;font-size:1.8rem;animation:cloudMove 8s linear infinite;opacity:0.8}
+.runner-cloud:nth-child(2){top:22px;animation-delay:-4s;font-size:1.3rem}
+@keyframes cloudMove{from{right:-80px}to{right:110%}}
+.runner-ground-strip{position:absolute;bottom:0;left:0;right:0;height:45%;background:linear-gradient(180deg,#6FD4A8,#3CB371);display:flex;align-items:center}
+.runner-lane{position:absolute;bottom:44%;left:0;right:0;height:3px;background:rgba(255,255,255,0.4)}
+.runner-char{position:absolute;bottom:42%;left:52px;font-size:2.4rem;animation:runBob 0.35s ease infinite alternate;filter:drop-shadow(0 4px 6px rgba(0,0,0,0.2))}
+@keyframes runBob{from{transform:translateY(0)}to{transform:translateY(-7px)}}
+.runner-obstacle{
+  position:absolute;bottom:42%;right:-120px;
+  background:rgba(255,107,107,0.95);color:#fff;
+  font-family:var(--font);font-size:1.1rem;padding:8px 14px;
+  border-radius:12px;border:3px solid rgba(255,255,255,0.4);
+  min-width:90px;text-align:center;
+  box-shadow:0 4px 16px rgba(255,107,107,0.4);
+}
+.runner-type-area{width:100%;max-width:620px;display:flex;gap:10px;margin-top:10px;align-items:stretch}
+.runner-input{
+  flex:1;padding:14px 18px;border-radius:50px;border:3px solid var(--border);
+  font-family:var(--font);font-size:1.3rem;text-align:center;background:var(--card);
+  color:var(--text);outline:none;letter-spacing:0.1em;text-transform:uppercase;
+  box-shadow:var(--shadow-sm);
+}
+.runner-input:focus{border-color:var(--purple);box-shadow:0 0 0 4px rgba(162,155,254,0.2)}
+.runner-timer{width:100%;max-width:620px;height:10px;background:var(--border);border-radius:50px;overflow:hidden;margin-top:6px}
+.runner-timer-fill{height:100%;background:linear-gradient(90deg,var(--mint),var(--teal));border-radius:50px;transition:width 0.15s linear}
+
+/* ===== VOICE REPEAT ===== */
+.voice-card{background:linear-gradient(135deg,#F3F0FF,#FFF0F7);border-radius:var(--radius);padding:32px;border:3px solid var(--border);text-align:center;max-width:480px;width:100%}
+.voice-word-big{font-family:var(--font);font-size:clamp(2.8rem,10vw,5rem);background:linear-gradient(135deg,var(--coral),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1}
+.listen-btn{
+  display:flex;align-items:center;gap:8px;justify-content:center;
+  background:linear-gradient(135deg,var(--teal),var(--mint));color:#fff;
+  font-family:var(--font);font-size:1rem;padding:12px 24px;border-radius:50px;
+  border:none;cursor:pointer;box-shadow:0 4px 16px rgba(78,205,196,0.4);
+  transition:all 0.2s;margin:6px auto;
+}
+.listen-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(78,205,196,0.5)}
+.listen-btn .speaker-icon{font-size:1.4rem;animation:speakerPulse 1.5s ease infinite}
+@keyframes speakerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.voice-sentence{font-size:1rem;color:var(--text-lt);font-weight:700;font-style:italic;margin-top:12px;padding:10px 16px;background:rgba(255,255,255,0.7);border-radius:12px}
+
+/* ===== LEARN MODE ===== */
+.learn-card{background:var(--card);border-radius:var(--radius);padding:28px;border:2px solid var(--border);box-shadow:var(--shadow);width:100%;max-width:540px}
+.learn-word{font-family:var(--font);font-size:clamp(2.5rem,8vw,4rem);text-align:center;background:linear-gradient(135deg,var(--coral),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.learn-sentence{background:linear-gradient(135deg,#F3F0FF,#FFF8F0);border-radius:var(--radius-sm);padding:14px;font-weight:700;font-size:0.95rem;color:var(--text);margin-top:12px;line-height:1.6}
+.learn-nav{display:flex;gap:12px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+.learn-idx{font-family:var(--font);font-size:1rem;color:var(--text-lt);margin-top:8px}
+
+/* ===== DASHBOARD ===== */
+.dash-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;width:100%;max-width:580px}
+.dash-card{background:var(--card);border-radius:var(--radius);padding:16px;text-align:center;border:2.5px solid var(--border);box-shadow:var(--shadow-sm)}
+.dash-big{font-family:var(--font);font-size:2rem;color:var(--coral)}
+.dash-lbl{font-size:0.78rem;color:var(--text-lt);font-weight:700;margin-top:4px}
+.badge-grid{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px;max-width:560px}
+.badge{padding:5px 14px;border-radius:50px;font-weight:800;font-size:0.8rem;background:#F3F0FF;border:2px solid var(--border);color:var(--text-lt)}
+.badge.earned{background:linear-gradient(135deg,var(--mint),var(--teal));color:#fff;border-color:var(--teal)}
+
+/* ===== FEEDBACK ===== */
+.feedback-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:999;pointer-events:none}
+.feedback-msg{font-family:var(--font);font-size:clamp(2.5rem,10vw,6rem);opacity:0;transition:all 0.15s;text-shadow:0 4px 20px rgba(0,0,0,0.15)}
+.feedback-msg.pop{opacity:1;transform:scale(1.15)}
+.feedback-msg.correct-fb{color:var(--mint)}
+.feedback-msg.wrong-fb{color:var(--coral)}
+
+/* ===== CONFETTI ===== */
+.confetti-piece{position:fixed;width:9px;height:9px;border-radius:2px;animation:confettiFall 2.2s ease forwards;pointer-events:none;z-index:9999}
+@keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* ===== STAR POP ===== */
+.star-pop{position:fixed;font-size:2rem;pointer-events:none;z-index:9998;animation:starPop 0.9s ease forwards}
+@keyframes starPop{0%{transform:scale(0) rotate(-30deg);opacity:1}60%{transform:scale(1.5) rotate(15deg);opacity:1}100%{transform:scale(0) rotate(45deg);opacity:0}}
+
+/* ===== STREAK BANNER ===== */
+.streak-banner{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,var(--yellow),var(--orange));color:var(--text);font-family:var(--font);font-size:1.2rem;padding:10px 26px;border-radius:50px;z-index:1000;opacity:0;transition:all 0.3s;box-shadow:0 6px 24px rgba(253,203,110,0.5);pointer-events:none}
+.streak-banner.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(45,52,54,0.55);backdrop-filter:blur(6px);z-index:10000;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--card);border-radius:var(--radius);padding:34px;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2);animation:fadeIn 0.3s ease}
+.modal-box h2{font-family:var(--font);font-size:2rem;color:var(--text)}
+.modal-box p{margin:10px 0 20px;color:var(--text-lt);font-size:1rem;font-weight:600}
+
+/* ===== PROGRESS INDICATOR ===== */
+.progress-dots{display:flex;gap:8px;justify-content:center;margin-top:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:all 0.3s}
+.dot.active{background:var(--coral);transform:scale(1.2)}
+.dot.done{background:var(--teal)}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.7;transform:scale(1.05)}}
+@keyframes shakeX{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+@keyframes bounceIn{0%{transform:scale(0.6);opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+@keyframes greenGlow{0%,100%{box-shadow:var(--shadow)}50%{box-shadow:0 0 32px rgba(85,239,196,0.7)}}
+.bounce-in{animation:bounceIn 0.4s ease forwards}
+.green-glow{animation:greenGlow 0.6s ease}
+.shake-x{animation:shakeX 0.4s ease}
+
+/* ===== LIVES ===== */
+.lives-row{display:flex;gap:4px}
+.life{font-size:1.2rem;transition:all 0.3s}
+.life.lost{opacity:0.2;transform:scale(0.8)}
+
+/* ===== TTS STATUS ===== */
+.tts-status{font-size:0.8rem;color:var(--text-lt);font-weight:600;text-align:center;height:20px}
+.tts-status.speaking{color:var(--teal)}
+
+/* ===== GAME ARENA ===== */
+.game-arena{width:100%;max-width:620px;background:var(--card);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);border:2.5px solid var(--border)}
+
+/* ===== CORRECT/WRONG OVERLAYS ===== */
+.game-arena.correct-glow{animation:greenGlow 0.5s ease}
+.game-arena.wrong-shake{animation:shakeX 0.4s ease}
+
+/* ===== TYPING INPUT ===== */
+.type-input{
+  width:100%;padding:16px 20px;border-radius:50px;border:3px solid var(--border);
+  font-family:var(--font);font-size:1.5rem;text-align:center;background:#FAFAFA;
+  color:var(--text);outline:none;letter-spacing:0.12em;text-transform:uppercase;
+  box-shadow:var(--shadow-sm);margin-top:12px;
+}
+.type-input:focus{border-color:var(--purple);box-shadow:0 0 0 4px rgba(162,155,254,0.2)}
+.type-input.correct-inp{border-color:var(--teal);background:#E6FAF8}
+.type-input.wrong-inp{border-color:var(--coral);background:#FFF0F0}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:500px){
+  .card{padding:16px}
+  .letter-tile,.drop-slot{width:44px;height:44px;font-size:1.25rem}
+  .wl-char{font-size:1.8rem;width:42px;height:52px}
+}
+@media(min-width:768px){.runner-arena{height:190px}}
+
+/* ===== FULLSCREEN BUTTON ===== */
+.fs-btn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  width: 42px;
+  height: 42px;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 12px rgba(162,155,254,0.22);
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+  padding: 0;
+}
+.fs-btn:hover {
+  transform: scale(1.12);
+  background: #F3F0FF;
+  box-shadow: 0 5px 18px rgba(162,155,254,0.35);
+}
+.fs-btn:active { transform: scale(0.96); }
+.fs-btn svg { display: block; }
+/* Default icon states — JS (updateFullscreenUI) drives toggling on change */
+.fs-btn .icon-enter { display: block; }
+.fs-btn .icon-exit  { display: none; }
+/* CSS fallback for browsers that support :fullscreen */
+:fullscreen .fs-btn .icon-enter,
+:-webkit-full-screen .fs-btn .icon-enter,
+:-moz-full-screen .fs-btn .icon-enter { display: none !important; }
+:fullscreen .fs-btn .icon-exit,
+:-webkit-full-screen .fs-btn .icon-exit,
+:-moz-full-screen .fs-btn .icon-exit  { display: block !important; }
+</style>
+</head>
+<body>
+
+<!-- FULLSCREEN BUTTON (fixed, always visible) -->
+<button class="fs-btn" id="fsToggle" onclick="toggleFullScreen()" title="Toggle Fullscreen">
+  <!-- Enter fullscreen icon -->
+  <svg class="icon-enter" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="15 3 21 3 21 9"></polyline>
+    <polyline points="9 21 3 21 3 15"></polyline>
+    <line x1="21" y1="3" x2="14" y2="10"></line>
+    <line x1="3" y1="21" x2="10" y2="14"></line>
+  </svg>
+  <!-- Exit fullscreen icon -->
+  <svg class="icon-exit" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--coral)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="4 14 10 14 10 20"></polyline>
+    <polyline points="20 10 14 10 14 4"></polyline>
+    <line x1="10" y1="14" x2="3" y2="21"></line>
+    <line x1="21" y1="3" x2="14" y2="10"></line>
+  </svg>
+</button>
+
+<!-- FLOATING LETTERS BG -->
+<div class="bg-letters" id="bgLetters"></div>
+
+<!-- STREAK BANNER -->
+<div class="streak-banner" id="streakBanner">🔥 <span id="streakNum">3</span> in a row!</div>
+
+<!-- FEEDBACK OVERLAY -->
+<div class="feedback-overlay"><div class="feedback-msg" id="feedbackMsg"></div></div>
+
+<!-- LEVEL UP MODAL -->
+<div class="modal-overlay" id="levelUpModal">
+  <div class="modal-box">
+    <div style="font-size:4rem">🎉</div>
+    <h2>Level Up!</h2>
+    <p>You reached <strong id="newLevel">Level 2</strong>! Keep spelling!</p>
+    <button class="btn btn-coral" onclick="closeModal('levelUpModal')">Keep Going! ✨</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     WELCOME SCREEN
+============================================================ -->
+<div class="screen active" id="welcome-screen">
+  <div style="height:32px"></div>
+  <div style="font-size:3.5rem">📚</div>
+  <div class="logo" style="margin-top:10px">SpellSmart</div>
+  <div class="subtitle">Learn Spelling with Phonics & Voice 🔊</div>
+  <div style="height:24px"></div>
+  <div style="display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;max-width:320px">
+    <button class="btn btn-coral" style="width:100%;font-size:1.15rem" onclick="showScreen('level-screen')">🚀 Start Playing</button>
+    <button class="btn btn-purple" style="width:100%;font-size:1.05rem" onclick="showScreen('learn-screen')">📘 Learn Words</button>
+    <button class="btn btn-teal" style="width:100%;font-size:1.05rem" onclick="showScreen('dashboard-screen')">📊 My Progress</button>
+  </div>
+  <div style="margin-top:28px;font-size:0.85rem;color:var(--text-lt);font-weight:600;text-align:center">
+    🎯 Hear · Spell · Practice · Master!
+  </div>
+</div>
+
+<!-- ============================================================
+     LEVEL SELECT SCREEN
+============================================================ -->
+<div class="screen" id="level-screen">
+  <div style="height:20px"></div>
+  <button class="btn btn-ghost" onclick="showScreen('welcome-screen')">← Back</button>
+  <div style="height:16px"></div>
+  <div class="logo" style="font-size:2rem">Choose Your Level</div>
+  <div class="subtitle">Pick the right difficulty for you</div>
+  <div class="level-grid">
+    <div class="level-card" onclick="selectLevel('beginner',this)">
+      <div class="lc-emoji">🌱</div>
+      <h3>Beginner</h3>
+      <p>Age 5–7 · Short words<br>Strong phonics help</p>
+    </div>
+    <div class="level-card" onclick="selectLevel('intermediate',this)">
+      <div class="lc-emoji">🌿</div>
+      <h3>Intermediate</h3>
+      <p>Age 8–10 · Longer words<br>Moderate hints</p>
+    </div>
+    <div class="level-card" onclick="selectLevel('advanced',this)">
+      <div class="lc-emoji">🌳</div>
+      <h3>Advanced</h3>
+      <p>Age 11+ · Complex words<br>No hints!</p>
+    </div>
+  </div>
+  <div style="height:24px"></div>
+  <button class="btn btn-coral" style="padding:14px 44px;font-size:1.1rem" onclick="goToMenu()">Let's Go! 🎮</button>
+</div>
+
+<!-- ============================================================
+     MAIN MENU SCREEN
+============================================================ -->
+<div class="screen" id="menu-screen">
+  <div style="width:100%;max-width:780px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+      <div class="logo" style="font-size:1.6rem">📚 SpellSmart</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div class="hud-chip"><span class="ic">⭐</span><span id="menu-xp">0 XP</span></div>
+        <div class="hud-chip"><span class="ic">🏅</span>Lv.<span id="menu-lv">1</span></div>
+        <div class="hud-chip"><span class="ic">🔥</span><span id="menu-streak">0</span></div>
+        <div class="hud-chip" id="menu-badge" style="background:#FFF0F0;border-color:#FFCDD2;color:var(--coral)">🌱 Beginner</div>
+      </div>
+    </div>
+    <div class="xp-wrap" style="max-width:100%;margin-bottom:18px"><div class="xp-fill" id="menuXpFill" style="width:0%"></div></div>
+    <div style="font-family:var(--font);font-weight:400;font-size:1.05rem;color:var(--text);margin-bottom:10px">🎮 Choose a Game:</div>
+    <div class="games-grid">
+      <div class="game-card" onclick="startGame(1)">
+        <div class="gc-icon">🎧</div><h4>Hear &amp; Type</h4>
+        <div class="gc-tag" style="background:#E3F5FF;color:#0984E3">Listen · Type</div>
+      </div>
+      <div class="game-card" onclick="startGame(2)">
+        <div class="gc-icon">🔀</div><h4>Drag the Letters</h4>
+        <div class="gc-tag" style="background:#FFF0F0;color:var(--coral)">Drag · Drop</div>
+      </div>
+      <div class="game-card" onclick="startGame(3)">
+        <div class="gc-icon">🔡</div><h4>Missing Letter</h4>
+        <div class="gc-tag" style="background:#F3F0FF;color:var(--purple)">Fill Blanks</div>
+      </div>
+      <div class="game-card" onclick="startGame(4)">
+        <div class="gc-icon">🧱</div><h4>Phonics Builder</h4>
+        <div class="gc-tag" style="background:#E6FAF8;color:#00B894">Build Words</div>
+      </div>
+      <div class="game-card" onclick="startGame(5)">
+        <div class="gc-icon">🏃</div><h4>Spell Runner</h4>
+        <div class="gc-tag" style="background:#FFFBEE;color:#E17055">Speed Run</div>
+      </div>
+      <div class="game-card" onclick="startGame(6)">
+        <div class="gc-icon">🎤</div><h4>Voice Repeat</h4>
+        <div class="gc-tag" style="background:#FFF0F7;color:var(--pink)">Say It!</div>
+      </div>
+      <div class="game-card" style="border-color:var(--yellow)" onclick="showScreen('learn-screen')">
+        <div class="gc-icon">📖</div><h4>Learn Mode</h4>
+        <div class="gc-tag" style="background:#FFFBEE;color:#E17055">Practice</div>
+      </div>
+    </div>
+    <div style="height:16px"></div>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-outline" onclick="showScreen('dashboard-screen')">📊 Dashboard</button>
+      <button class="btn btn-outline" onclick="showScreen('level-screen')">🎚️ Change Level</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     GAME 1 — HEAR & TYPE
+============================================================ -->
+<div class="screen" id="game1-screen">
+  <div style="width:100%;max-width:620px">
+    <div class="hud">
+      <button class="btn btn-ghost" onclick="exitGame()">← Back</button>
+      <div style="display:flex;gap:8px">
+        <div class="hud-chip"><span class="ic">⭐</span><span id="g1-xp">0</span></div>
+        <div class="hud-chip"><span class="ic">🔥</span><span id="g1-streak">0</span></div>
+        <div class="hud-chip"><div class="lives-row" id="g1-lives"></div></div>
+      </div>
+    </div>
+    <div class="game-arena" id="g1-arena">
+      <div style="text-align:center;font-family:var(--font);font-size:1rem;color:var(--text-lt);margin-bottom:10px">🎧 Listen and spell the word!</div>
+      <div class="tts-status" id="g1-tts">Preparing...</div>
+      <div style="display:flex;justify-content:center;gap:10px;margin:10px 0;flex-wrap:wrap">
+        <button class="listen-btn" onclick="g1Listen()">
+          <span class="speaker-icon">🔊</span> Listen Again
+        </button>
+        <button class="listen-btn" style="background:linear-gradient(135deg,var(--purple),var(--pink))" onclick="g1ShowPhonics()">
+          📖 Phonics Hint
+        </button>
+      </div>
+      <div id="g1-phonics-area" style="display:none">
+        <div class="phonics-row" id="g1-phonics-blocks"></div>
+      </div>
+      <input class="type-input" id="g1-input" placeholder="Type the word here..." autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')g1Check()">
+      <div style="text-align:center;margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-coral" onclick="g1Check()">Check ✓</button>
+        <button class="btn btn-outline" onclick="g1Skip()">Skip →</button>
+      </div>
+      <div id="g1-feedback" style="height:32px;margin-top:8px;text-align:center;font-weight:800;font-size:1rem"></div>
+    </div>
+    <div style="text-align:center;margin-top:8px">
+      <div class="progress-dots" id="g1-dots"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     GAME 2 — DRAG THE LETTERS
+============================================================ -->
+<div class="screen" id="game2-screen">
+  <div style="width:100%;max-width:600px">
+    <div class="hud">
+      <button class="btn btn-ghost" onclick="exitGame()">← Back</button>
+      <div style="display:flex;gap:8px">
+        <div class="hud-chip"><span class="ic">⭐</span><span id="g2-xp">0</span></div>
+        <div class="hud-chip"><span class="ic">🎯</span><span id="g2-score">0/0</span></div>
+      </div>
+    </div>
+    <div class="game-arena" id="g2-arena">
+      <div style="text-align:center;font-family:var(--font);font-size:1rem;color:var(--text-lt);margin-bottom:6px">🔀 Arrange the letters to spell:</div>
+      <div style="display:flex;justify-content:center;gap:10px;margin:8px 0;align-items:center;flex-wrap:wrap">
+        <button class="listen-btn" onclick="g2Listen()"><span class="speaker-icon">🔊</span> Hear It</button>
+        <div class="word-hint" id="g2-hint"></div>
+      </div>
+      <div style="font-family:var(--font);font-size:0.9rem;color:var(--text-lt);text-align:center;margin-bottom:8px">Drop letters here:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:64px" id="g2-slots"></div>
+      <div style="border-top:2px dashed var(--border);margin:16px 0"></div>
+      <div style="font-family:var(--font);font-size:0.9rem;color:var(--text-lt);text-align:center;margin-bottom:8px">Letter tiles:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;min-height:64px" id="g2-tiles"></div>
+      <div style="text-align:center;margin-top:16px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-teal" onclick="g2Check()">Check ✓</button>
+        <button class="btn btn-outline" onclick="g2Reset()">Reset 🔄</button>
+        <button class="btn btn-outline" onclick="g2Next()">Skip →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     GAME 3 — MISSING LETTER
+============================================================ -->
+<div class="screen" id="game3-screen">
+  <div style="width:100%;max-width:600px">
+    <div class="hud">
+      <button class="btn btn-ghost" onclick="exitGame()">← Back</button>
+      <div style="display:flex;gap:8px">
+        <div class="hud-chip"><span class="ic">⭐</span><span id="g3-xp">0</span></div>
+        <div class="hud-chip"><span class="ic">🔥</span><span id="g3-streak">0</span></div>
+      </div>
+    </div>
+    <div class="game-arena" id="g3-arena">
+      <div style="text-align:center;font-family:var(--font);font-size:1rem;color:var(--text-lt);margin-bottom:6px">🔡 Fill in the missing letter!</div>
+      <div style="display:flex;justify-content:center;gap:10px;margin:8px 0;align-items:center;flex-wrap:wrap">
+        <button class="listen-btn" onclick="g3Listen()"><span class="speaker-icon">🔊</span> Hear It</button>
+        <div class="word-hint" id="g3-hint"></div>
+      </div>
+      <div class="word-blanks" id="g3-word-display"></div>
+      <div class="letter-choices" id="g3-choices"></div>
+      <div id="g3-feedback" style="height:28px;margin-top:10px;text-align:center;font-weight:800;font-size:0.95rem"></div>
+    </div>
+    <div class="progress-dots" id="g3-dots"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     GAME 4 — PHONICS BUILDER
+============================================================ -->
+<div class="screen" id="game4-screen">
+  <div style="width:100%;max-width:600px">
+    <div class="hud">
+      <button class="btn btn-ghost" onclick="exitGame()">← Back</button>
+      <div style="display:flex;gap:8px">
+        <div class="hud-chip"><span class="ic">⭐</span><span id="g4-xp">0</span></div>
+        <div class="hud-chip"><span class="ic">🎯</span><span id="g4-score">0</span></div>
+      </div>
+    </div>
+    <div class="game-arena" id="g4-arena">
+      <div style="text-align:center;font-family:var(--font);font-size:1rem;color:var(--text-lt);margin-bottom:6px">🧱 Click phonics in the right order to build the word!</div>
+      <div style="display:flex;justify-content:center;gap:10px;margin:8px 0;align-items:center;flex-wrap:wrap">
+        <button class="listen-btn" onclick="g4Listen()"><span class="speaker-icon">🔊</span> Hear Word</button>
+        <button class="listen-btn" style="background:linear-gradient(135deg,var(--purple),var(--pink))" onclick="g4PlayPhonics()">📖 Play Phonics</button>
+      </div>
+      <div style="font-family:var(--font);font-size:0.9rem;color:var(--text-lt);text-align:center;margin:8px 0">Your answer:</div>
+      <div class="ph-builder-answer" id="g4-answer"></div>
+      <div style="font-family:var(--font);font-size:0.9rem;color:var(--text-lt);text-align:center;margin:12px 0 6px">Available phonics (click to select):</div>
+      <div class="ph-builder-pool" id="g4-pool"></div>
+      <div class="ph-progress" id="g4-progress"></div>
+      <div style="text-align:center;margin-top:12px;display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-teal" onclick="g4Check()">Check ✓</button>
+        <button class="btn btn-outline" onclick="g4Reset()">Reset 🔄</button>
+      </div>
+    </div>
+    <div class="progress-dots" id="g4-dots"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     GAME 5 — SPELL RUNNER
+============================================================ -->
+<div class="screen" id="game5-screen">
+  <div style="width:100%;max-width:620px">
+    <div class="hud">
+      <button class="btn btn-ghost" onclick="exitGame()">← Back</button>
+      <div style="display:flex;gap:8px">
+        <div class="hud-chip"><span class="ic">⭐</span><span id="g5-xp">0</span></div>
+        <div class="hud-chip"><span class="ic">📏</span><span id="g5-dist">0m</span></div>
+        <div class="hud-chip"><div class="lives-row" id="g5-lives"></div></div>
+      </div>
+    </div>
+    <div class="runner-arena">
+      <div class="runner-sky">
+        <div class="runner-cloud">☁️</div>
+        <div class="runner-cloud">🌤️</div>
+      </div>
+      <div class="runner-ground-strip"></div>
+      <div class="runner-lane"></div>
+      <div class="runner-char" id="runnerChar">🏃</div>
+      <div class="runner-obstacle" id="runnerObs" style="display:none">WORD</div>
+    </div>
+    <div class="runner-timer"><div class="runner-timer-fill" id="runnerTimer" style="width:100%"></div></div>
+    <div style="text-align:center;font-family:var(--font);font-size:1.1rem;color:var(--purple);margin:6px 0" id="g5-question">Spell the word!</div>
+    <div class="runner-type-area">
+      <input class="runner-input" id="g5-input" placeholder="Spell it!" autocomplete="off" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')g5Check()">
+      <button class="btn btn-coral" onclick="g5Check()" style="border-radius:50px;padding:0 20px">Go!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     GAME 6 — VOICE REPEAT
+============================================================ -->
+<div class="screen" id="game6-screen">
+  <div style="width:100%;max-width:520px">
+    <div class="hud">
+      <button class="btn btn-ghost" onclick="exitGame()">← Back</button>
+      <div style="display:flex;gap:8px">
+        <div class="hud-chip"><span class="ic">⭐</span><span id="g6-xp">0</span></div>
+        <div class="hud-chip"><span class="ic">🎤</span><span id="g6-done">0/0</span></div>
+      </div>
+    </div>
+    <div class="voice-card">
+      <div style="font-family:var(--font);font-size:0.95rem;color:var(--text-lt);margin-bottom:14px">🎤 Listen, then say the word out loud!</div>
+      <div class="voice-word-big" id="g6-word">APPLE</div>
+      <div style="height:12px"></div>
+      <div class="phonics-row" id="g6-phonics"></div>
+      <div class="voice-sentence" id="g6-sentence"></div>
+      <div style="height:16px"></div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="listen-btn" onclick="g6Listen()"><span class="speaker-icon">🔊</span> Listen</button>
+        <button class="listen-btn" style="background:linear-gradient(135deg,var(--purple),var(--pink))" onclick="g6Phonics()">🔤 Phonics</button>
+      </div>
+      <div style="height:14px"></div>
+      <div id="g6-mic-area">
+        <button class="btn btn-coral" style="width:100%;font-size:1rem;padding:14px" onclick="g6Repeat()">
+          🎤 I Said It! ✓
+        </button>
+        <div style="font-size:0.8rem;color:var(--text-lt);font-weight:600;margin-top:6px;text-align:center" id="g6-mic-hint">Say the word out loud, then tap the button</div>
+      </div>
+      <div style="height:10px"></div>
+      <button class="btn btn-outline" style="width:100%" onclick="g6Next()">Next Word →</button>
+    </div>
+    <div class="progress-dots" id="g6-dots" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     LEARN SCREEN
+============================================================ -->
+<div class="screen" id="learn-screen">
+  <div style="width:100%;max-width:540px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <button class="btn btn-ghost" onclick="showScreen('menu-screen')">← Back</button>
+      <div style="font-family:var(--font);font-size:1.3rem;color:var(--text)">📖 Learn Words</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:0.85rem" onclick="setLearnLevel('beginner')">🌱</button>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:0.85rem" onclick="setLearnLevel('intermediate')">🌿</button>
+        <button class="btn btn-outline" style="padding:6px 14px;font-size:0.85rem" onclick="setLearnLevel('advanced')">🌳</button>
+      </div>
+    </div>
+    <div class="learn-card">
+      <div class="learn-word" id="learn-word">APPLE</div>
+      <div style="display:flex;justify-content:center;gap:10px;margin:12px 0;flex-wrap:wrap">
+        <button class="listen-btn" onclick="learnListen()"><span class="speaker-icon">🔊</span> Pronounce</button>
+        <button class="listen-btn" style="background:linear-gradient(135deg,var(--purple),var(--pink))" onclick="learnPhonics()">📖 Phonics</button>
+      </div>
+      <div style="font-family:var(--font);font-size:0.9rem;color:var(--text-lt);text-align:center;margin-bottom:6px">Phonics breakdown:</div>
+      <div class="phonics-row" id="learn-phonics-row"></div>
+      <div class="learn-sentence" id="learn-sentence"></div>
+      <div style="font-size:0.82rem;font-weight:700;color:var(--text-lt);text-align:center;margin-top:10px" id="learn-hint"></div>
+    </div>
+    <div class="learn-nav">
+      <button class="btn btn-outline" onclick="learnPrev()">← Prev</button>
+      <button class="btn btn-teal" onclick="learnListen()">🔊 Play</button>
+      <button class="btn btn-outline" onclick="learnNext()">Next →</button>
+    </div>
+    <div class="learn-idx" id="learn-idx">Word 1 of 20</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     DASHBOARD SCREEN
+============================================================ -->
+<div class="screen" id="dashboard-screen">
+  <div style="width:100%;max-width:580px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px">
+      <button class="btn btn-ghost" onclick="showScreen('menu-screen')">← Back</button>
+      <div style="font-family:var(--font);font-size:1.5rem;color:var(--text)">📊 My Progress</div>
+    </div>
+    <div class="dash-grid">
+      <div class="dash-card"><div class="dash-big" id="d-xp">0</div><div class="dash-lbl">⭐ Total XP</div></div>
+      <div class="dash-card"><div class="dash-big" id="d-lv">1</div><div class="dash-lbl">🏆 Level</div></div>
+      <div class="dash-card"><div class="dash-big" id="d-acc">0%</div><div class="dash-lbl">🎯 Accuracy</div></div>
+      <div class="dash-card"><div class="dash-big" id="d-streak">0</div><div class="dash-lbl">🔥 Best Streak</div></div>
+      <div class="dash-card"><div class="dash-big" id="d-words">0</div><div class="dash-lbl">📚 Words Practiced</div></div>
+      <div class="dash-card"><div class="dash-big" id="d-mastered">0</div><div class="dash-lbl">✅ Mastered</div></div>
+    </div>
+    <div style="font-family:var(--font);font-size:1rem;color:var(--text-lt);margin:18px 0 8px">🏅 Achievements:</div>
+    <div class="badge-grid" id="badges"></div>
+    <div style="height:14px"></div>
+    <button class="btn btn-coral" onclick="showScreen('menu-screen')">Back to Menu</button>
+  </div>
+</div>
+
+<script>
+// =====================================================================
+// WORD DATA
+// =====================================================================
+const VOWELS = new Set(['A','E','I','O','U']);
+const DIGRAPHS = new Set(['SH','CH','TH','WH','PH']);
+const BLENDS = new Set(['BL','FL','CL','GL','PL','SL','BR','CR','DR','FR','GR','PR','TR','SC','SK','SM','SN','SP','ST','SW','TW','QU','STR']);
+
+const WORDS = {
+  beginner:[
+    {word:'CAT',   phonics:['C','A','T'],          sentence:'The cat sat on the warm mat.',     hint:'🐱 A fluffy pet'},
+    {word:'DOG',   phonics:['D','O','G'],          sentence:'The dog loves to fetch the ball.',  hint:'🐶 Man\'s best friend'},
+    {word:'HAT',   phonics:['H','A','T'],          sentence:'I wear a hat in the sunny park.',   hint:'🎩 You wear it on your head'},
+    {word:'SUN',   phonics:['S','U','N'],          sentence:'The sun shines bright in the sky.', hint:'☀️ It gives us light'},
+    {word:'CUP',   phonics:['C','U','P'],          sentence:'Pour some warm tea in the cup.',    hint:'☕ You drink from it'},
+    {word:'PIG',   phonics:['P','I','G'],          sentence:'The pig plays in the mud.',         hint:'🐷 A pink farm animal'},
+    {word:'BAG',   phonics:['B','A','G'],          sentence:'Put your books in the bag.',        hint:'👜 You carry things in it'},
+    {word:'BED',   phonics:['B','E','D'],          sentence:'I sleep in my cosy bed.',           hint:'🛏️ You sleep in it'},
+    {word:'RUN',   phonics:['R','U','N'],          sentence:'Let us run fast in the park.',      hint:'🏃 Moving quickly on foot'},
+    {word:'MAP',   phonics:['M','A','P'],          sentence:'Use the map to find your way.',     hint:'🗺️ Shows you where to go'},
+    {word:'TOP',   phonics:['T','O','P'],          sentence:'Spin the top on the floor.',        hint:'🎪 Something that spins'},
+    {word:'SIT',   phonics:['S','I','T'],          sentence:'Please sit down on the chair.',     hint:'🪑 Rest in a chair'},
+    {word:'HOP',   phonics:['H','O','P'],          sentence:'Frogs love to hop around.',         hint:'🐸 A small jump'},
+    {word:'PET',   phonics:['P','E','T'],          sentence:'I have a pet cat and dog.',         hint:'🐠 An animal you keep at home'},
+    {word:'BUG',   phonics:['B','U','G'],          sentence:'A small bug crawled on the leaf.',  hint:'🐛 A tiny insect'},
+    {word:'FAN',   phonics:['F','A','N'],          sentence:'The fan keeps me cool indoors.',    hint:'🌀 Blows cool air'},
+    {word:'LEG',   phonics:['L','E','G'],          sentence:'My leg is tired after the walk.',   hint:'🦵 Part of your body'},
+    {word:'PIN',   phonics:['P','I','N'],          sentence:'Use a pin to hold the paper.',      hint:'📌 A sharp little object'},
+    {word:'POT',   phonics:['P','O','T'],          sentence:'Cook the soup in the big pot.',     hint:'🍲 Used for cooking'},
+    {word:'WEB',   phonics:['W','E','B'],          sentence:'A spider spun a beautiful web.',    hint:'🕸️ A spider makes this'},
+  ],
+  intermediate:[
+    {word:'APPLE',  phonics:['A','PP','LE'],       sentence:'I eat a crunchy apple every day.',    hint:'🍎 A red or green fruit'},
+    {word:'BLACK',  phonics:['BL','A','CK'],       sentence:'The night sky is very black.',        hint:'⬛ The darkest colour'},
+    {word:'CLOUD',  phonics:['CL','OU','D'],       sentence:'A fluffy white cloud floated by.',    hint:'☁️ Floats in the sky'},
+    {word:'DRINK',  phonics:['DR','I','NK'],       sentence:'Please drink your water slowly.',     hint:'💧 What you do with juice'},
+    {word:'FLAME',  phonics:['FL','A','ME'],       sentence:'The flame of the candle flickered.',  hint:'🔥 Hot glowing fire'},
+    {word:'GRASS',  phonics:['GR','A','SS'],       sentence:'The grass in the garden is green.',   hint:'🌿 Green plants underfoot'},
+    {word:'HAPPY',  phonics:['H','A','PP','Y'],    sentence:'She felt very happy on her birthday.',hint:'😊 Feeling joyful'},
+    {word:'JUICE',  phonics:['J','UI','CE'],       sentence:'Orange juice is sweet and healthy.',  hint:'🍊 A fruity drink'},
+    {word:'LIGHT',  phonics:['L','IGH','T'],       sentence:'Turn on the light so we can see.',    hint:'💡 Helps us see in the dark'},
+    {word:'PLANT',  phonics:['PL','A','NT'],       sentence:'Water your plant every morning.',     hint:'🌱 A living green thing'},
+    {word:'SLEEP',  phonics:['SL','EE','P'],       sentence:'You need to sleep to grow strong.',   hint:'😴 What you do at night'},
+    {word:'SWEET',  phonics:['SW','EE','T'],       sentence:'The sweet candy melted in my mouth.', hint:'🍬 Something sugary'},
+    {word:'TRAIN',  phonics:['TR','AI','N'],       sentence:'The red train runs on long tracks.',  hint:'🚂 Travels on rails'},
+    {word:'BREAD',  phonics:['BR','EA','D'],       sentence:'Warm fresh bread smells wonderful.',  hint:'🍞 Made from wheat flour'},
+    {word:'CHAIR',  phonics:['CH','AI','R'],       sentence:'Please sit on the comfortable chair.',hint:'🪑 You sit on this'},
+    {word:'DREAM',  phonics:['DR','EA','M'],       sentence:'I had a magical dream last night.',   hint:'💭 What happens when you sleep'},
+    {word:'FLOOR',  phonics:['FL','OO','R'],       sentence:'Sweep the kitchen floor every day.',  hint:'🧹 The ground inside a room'},
+    {word:'HEART',  phonics:['H','EAR','T'],       sentence:'Your heart pumps blood around you.',  hint:'❤️ Keeps you alive'},
+    {word:'MAGIC',  phonics:['M','A','G','IC'],    sentence:'The magic show amazed everyone!',     hint:'🪄 Something wonderfully mysterious'},
+    {word:'QUIET',  phonics:['QU','IE','T'],       sentence:'Please be quiet in the library.',     hint:'🤫 Making very little noise'},
+  ],
+  advanced:[
+    {word:'BEAUTIFUL', phonics:['B','EAU','T','I','FUL'],   sentence:'The flowers in the garden are beautiful.',      hint:'🌸 Very pleasing to see'},
+    {word:'CHILDREN',  phonics:['CH','I','LDR','EN'],        sentence:'The children played happily outside.',           hint:'👶 Young boys and girls'},
+    {word:'COMPLETE',  phonics:['C','OM','PL','ETE'],        sentence:'Please complete all your homework today.',       hint:'✅ To finish fully'},
+    {word:'ELEPHANT',  phonics:['EL','E','PH','ANT'],        sentence:'The elephant trumpeted loudly at the zoo.',      hint:'🐘 The largest land animal'},
+    {word:'FRIENDLY',  phonics:['FR','I','END','LY'],        sentence:'She is the most friendly person I know.',       hint:'🤝 Kind and warm to others'},
+    {word:'LANGUAGE',  phonics:['L','AN','GU','AGE'],        sentence:'English is a widely spoken language.',          hint:'💬 A way people communicate'},
+    {word:'MOUNTAIN',  phonics:['M','OU','NT','A','IN'],     sentence:'We climbed to the top of the tall mountain.',   hint:'⛰️ A very tall hill'},
+    {word:'NOTHING',   phonics:['N','O','TH','ING'],         sentence:'There was absolutely nothing in the box.',      hint:'🕳️ Not anything at all'},
+    {word:'OUTSIDE',   phonics:['OU','T','S','IDE'],         sentence:'Let us play outside in the fresh air.',         hint:'🌞 Beyond the walls of a building'},
+    {word:'PICTURE',   phonics:['P','I','CT','URE'],         sentence:'Draw a colourful picture for your mum.',        hint:'🎨 A drawing or photograph'},
+    {word:'PRINCESS',  phonics:['PR','I','NC','ESS'],        sentence:'The princess wore a glittering gold crown.',    hint:'👸 A royal young woman'},
+    {word:'QUESTION',  phonics:['QU','EST','ION'],           sentence:'Ask your teacher a thoughtful question.',       hint:'❓ Something you ask to find out'},
+    {word:'SHOULDER',  phonics:['SH','OUL','DER'],           sentence:'He gently tapped her on the shoulder.',         hint:'🫱 The top of your arm'},
+    {word:'STRAIGHT',  phonics:['STR','AIGH','T'],           sentence:'Walk in a perfectly straight line.',            hint:'📏 Not curved or bent'},
+    {word:'TREASURE',  phonics:['TR','EA','S','URE'],        sentence:'Pirates searched for the hidden treasure.',     hint:'💎 Something precious and valuable'},
+    {word:'UMBRELLA',  phonics:['UM','BR','ELL','A'],        sentence:'Bring your umbrella because it may rain.',      hint:'☂️ Keeps you dry in the rain'},
+    {word:'VILLAGE',   phonics:['V','I','LL','AGE'],         sentence:'The little village was peaceful and quiet.',    hint:'🏘️ A small community of homes'},
+    {word:'WHISPER',   phonics:['WH','I','SP','ER'],         sentence:'Please whisper so you don\'t wake the baby.',   hint:'🤫 Speaking very softly'},
+    {word:'JOURNEY',   phonics:['J','OUR','N','EY'],         sentence:'It was a long and exciting journey abroad.',    hint:'🗺️ A long trip somewhere'},
+    {word:'KITCHEN',   phonics:['K','I','TCH','EN'],         sentence:'Mum cooks delicious meals in the kitchen.',    hint:'👨‍🍳 Room where you cook food'},
+  ]
+};
+
+// =====================================================================
+// STATE
+// =====================================================================
+const STATE = {
+  level: 'beginner',
+  xp: 0, playerLevel: 1,
+  streak: 0, bestStreak: 0,
+  totalAnswered: 0, totalCorrect: 0,
+  learnedWords: new Set(),
+  masteredWords: new Set(),
+  currentGame: null,
+  get accuracy(){ return this.totalAnswered===0?0:Math.round(this.totalCorrect/this.totalAnswered*100); },
+  get xpForNext(){ return this.playerLevel*150; }
+};
+
+const gameTimers = [];
+function stopAllTimers(){ gameTimers.forEach(clearInterval); gameTimers.length=0; }
+
+// =====================================================================
+// BG FLOATING LETTERS
+// =====================================================================
+function initBg(){
+  const c = document.getElementById('bgLetters');
+  c.innerHTML='';
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  for(let i=0;i<28;i++){
+    const el=document.createElement('div');
+    el.className='bg-letter';
+    el.textContent=letters[Math.floor(Math.random()*letters.length)];
+    const size=24+Math.random()*60;
+    el.style.cssText=`left:${Math.random()*100}%;font-size:${size}px;animation-duration:${12+Math.random()*18}s;animation-delay:${-Math.random()*20}s;color:hsl(${Math.random()*360},60%,60%)`;
+    c.appendChild(el);
+  }
+}
+initBg();
+
+// =====================================================================
+// TTS HELPERS
+// =====================================================================
+let _ttsVoice = null;
+function loadVoices(){
+  const voices = speechSynthesis.getVoices();
+  // Priority 1: Indian English voices (en-IN)
+  _ttsVoice = voices.find(v=>v.lang==='en-IN')
+  // Priority 2: Any voice with 'india' or 'raveena' in name
+           || voices.find(v=>v.name.toLowerCase().includes('raveena'))
+           || voices.find(v=>v.name.toLowerCase().includes('india'))
+           || voices.find(v=>v.name.toLowerCase().includes('heera'))
+  // Priority 3: Hindi voices as fallback
+           || voices.find(v=>v.lang.startsWith('hi'))
+  // Priority 4: Any English female
+           || voices.find(v=>v.lang.startsWith('en')&&v.name.toLowerCase().includes('female'))
+  // Priority 5: Any English voice
+           || voices.find(v=>v.lang.startsWith('en'))
+           || voices[0]||null;
+}
+if(window.speechSynthesis){
+  speechSynthesis.onvoiceschanged = loadVoices;
+  setTimeout(loadVoices,200);
+}
+
+function speak(text, rate=0.85, onEnd){
+  if(!window.speechSynthesis){if(onEnd)onEnd();return;}
+  speechSynthesis.cancel();
+  // Small delay after cancel to avoid Chrome bug where onend never fires
+  setTimeout(()=>{
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='en-IN';
+    u.rate=rate; u.pitch=1.0;
+    if(_ttsVoice)u.voice=_ttsVoice;
+    if(onEnd)u.onend=onEnd;
+    speechSynthesis.speak(u);
+  }, 50);
+}
+
+function speakPhonics(phonics, highlightCb, onComplete){
+  let i=0;
+  function next(){
+    if(i>=phonics.length){if(onComplete)onComplete();return;}
+    if(highlightCb)highlightCb(i);
+    speak(phonics[i], 0.7, ()=>{ i++; setTimeout(next,350); });
+  }
+  next();
+}
+
+// =====================================================================
+// NAVIGATION
+// =====================================================================
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='dashboard-screen')updateDashboard();
+  if(id==='learn-screen')initLearn();
+  if(id==='menu-screen')updateMenuHud();
+}
+
+function selectLevel(lv,el){
+  document.querySelectorAll('.level-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  STATE.level=lv;
+}
+
+function goToMenu(){
+  updateMenuHud();
+  showScreen('menu-screen');
+}
+
+function exitGame(){
+  stopAllTimers();
+  speechSynthesis.cancel&&speechSynthesis.cancel();
+  showScreen('menu-screen');
+}
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+// =====================================================================
+// XP & LEVELING
+// =====================================================================
+function addXP(amount){
+  STATE.xp+=amount;
+  while(STATE.xp>=STATE.xpForNext){
+    STATE.xp-=STATE.xpForNext;
+    STATE.playerLevel++;
+    triggerLevelUp();
+  }
+  updateMenuHud();
+}
+
+function triggerLevelUp(){
+  document.getElementById('newLevel').textContent='Level '+STATE.playerLevel;
+  document.getElementById('levelUpModal').classList.add('open');
+  triggerConfetti();
+}
+
+function updateMenuHud(){
+  document.getElementById('menu-xp').textContent=STATE.xp+' XP';
+  document.getElementById('menu-lv').textContent=STATE.playerLevel;
+  document.getElementById('menu-streak').textContent=STATE.bestStreak;
+  const pct=Math.min(100,(STATE.xp/STATE.xpForNext)*100);
+  document.getElementById('menuXpFill').style.width=pct+'%';
+  const lvlMap={beginner:'🌱 Beginner',intermediate:'🌿 Intermediate',advanced:'🌳 Advanced'};
+  document.getElementById('menu-badge').textContent=lvlMap[STATE.level]||'🌱 Beginner';
+}
+
+// =====================================================================
+// COMBO / STREAK
+// =====================================================================
+function onCorrect(){
+  STATE.streak++;
+  STATE.totalCorrect++;
+  STATE.totalAnswered++;
+  if(STATE.streak>STATE.bestStreak)STATE.bestStreak=STATE.streak;
+  if(STATE.streak>=3){
+    document.getElementById('streakNum').textContent=STATE.streak;
+    const sb=document.getElementById('streakBanner');
+    sb.classList.add('show');
+    setTimeout(()=>sb.classList.remove('show'),2000);
+  }
+}
+
+function onWrong(){
+  STATE.streak=0;
+  STATE.totalAnswered++;
+}
+
+// =====================================================================
+// VISUAL FEEDBACK
+// =====================================================================
+function showFeedback(correct){
+  const msg=document.getElementById('feedbackMsg');
+  msg.textContent=correct?'✓':'✗';
+  msg.className='feedback-msg '+(correct?'correct-fb':'wrong-fb')+' pop';
+  setTimeout(()=>{msg.classList.remove('pop');setTimeout(()=>{msg.style.opacity=0;},200);},600);
+}
+
+function flashArena(id,correct){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.add(correct?'correct-glow':'wrong-shake');
+  setTimeout(()=>el.classList.remove('correct-glow','wrong-shake'),600);
+}
+
+function triggerConfetti(){
+  const colors=['#FF6B6B','#4ECDC4','#FFE66D','#A29BFE','#FD79A8','#55EFC4','#74B9FF','#FDCB6E'];
+  for(let i=0;i<48;i++){
+    const el=document.createElement('div');
+    el.className='confetti-piece';
+    el.style.cssText=`left:${Math.random()*100}vw;top:-10px;background:${colors[Math.floor(Math.random()*colors.length)]};border-radius:${Math.random()>0.5?'50%':'2px'};animation-delay:${Math.random()*0.5}s;`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),2700);
+  }
+}
+
+function showStarPop(x,y){
+  const el=document.createElement('div');
+  el.className='star-pop';
+  el.textContent=['⭐','✨','💫','🌟','🎉'][Math.floor(Math.random()*5)];
+  el.style.cssText=`left:${x}px;top:${y}px;`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),950);
+}
+
+// =====================================================================
+// UTILS
+// =====================================================================
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function randInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+function getWords(){return WORDS[STATE.level]||WORDS.beginner;}
+function getPhClass(ph){ const vp=['A','E','I','O','U','EE','AI','EA','OO','OU','IE','UI','IGH','EAR','EAU','OUR','AIGH','AU','OI']; if(vp.includes(ph))return 'vowel'; if(DIGRAPHS.has(ph))return 'digraph'; if(BLENDS.has(ph))return 'blend'; return 'consonant'; }
+
+function makeLives(n){return Array.from({length:n},()=>'❤️').join('')}
+
+function renderLives(elId,n,max=3){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML='';
+  for(let i=0;i<max;i++){
+    const s=document.createElement('span');
+    s.className='life'+(i>=n?' lost':'');
+    s.textContent='❤️';
+    el.appendChild(s);
+  }
+}
+
+function buildDots(elId,total,current){
+  const el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML='';
+  for(let i=0;i<total;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i<current?' done':(i===current?' active':''));
+    el.appendChild(d);
+  }
+}
+
+function buildPhonicsBlocks(phonics,parentId,activeIdx=-1){
+  const el=document.getElementById(parentId);
+  if(!el)return;
+  el.innerHTML='';
+  phonics.forEach((ph,i)=>{
+    const d=document.createElement('div');
+    d.className='ph-block '+getPhClass(ph)+(i===activeIdx?' active':'')+(activeIdx>=0&&i<activeIdx?' done':'');
+    d.textContent=ph;
+    el.appendChild(d);
+  });
+}
+
+// =====================================================================
+// GAME LAUNCHER
+// =====================================================================
+function startGame(n){
+  stopAllTimers();
+  speechSynthesis.cancel&&speechSynthesis.cancel();
+  STATE.currentGame=n;
+  showScreen('game'+n+'-screen');
+  const inits=[null,initGame1,initGame2,initGame3,initGame4,initGame5,initGame6];
+  if(inits[n])inits[n]();
+}
+
+// =====================================================================
+// GAME 1 — HEAR & TYPE
+// =====================================================================
+let g1={xp:0,idx:0,words:[],lives:3,phonicsShown:false};
+
+function initGame1(){
+  g1.xp=0;g1.idx=0;g1.lives=3;g1.phonicsShown=false;
+  g1.words=shuffle(getWords()).slice(0,10);
+  document.getElementById('g1-xp').textContent=0;
+  document.getElementById('g1-streak').textContent=STATE.streak;
+  renderLives('g1-lives',3);
+  buildDots('g1-dots',10,0);
+  g1LoadQuestion();
+}
+
+function g1LoadQuestion(){
+  const inp=document.getElementById('g1-input');
+  inp.value='';
+  inp.className='type-input';
+  document.getElementById('g1-feedback').textContent='';
+  document.getElementById('g1-phonics-area').style.display='none';
+  g1.phonicsShown=false;
+  buildDots('g1-dots',10,g1.idx);
+
+  const q=g1.words[g1.idx];
+  STATE.learnedWords.add(q.word);
+  document.getElementById('g1-tts').textContent='🔊 Speaking...';
+  document.getElementById('g1-tts').className='tts-status speaking';
+  speak(q.word,0.8,()=>{
+    document.getElementById('g1-tts').textContent='🎧 Now type what you heard';
+    document.getElementById('g1-tts').className='tts-status';
+  });
+  inp.focus();
+}
+
+function g1Listen(){
+  const q=g1.words[g1.idx];
+  speak(q.word,0.75);
+}
+
+function g1ShowPhonics(){
+  const q=g1.words[g1.idx];
+  const area=document.getElementById('g1-phonics-area');
+  area.style.display='block';
+  g1.phonicsShown=true;
+  buildPhonicsBlocks(q.phonics,'g1-phonics-blocks');
+  speakPhonics(q.phonics,(i)=>buildPhonicsBlocks(q.phonics,'g1-phonics-blocks',i),
+    ()=>buildPhonicsBlocks(q.phonics,'g1-phonics-blocks'));
+}
+
+function g1Check(){
+  const inp=document.getElementById('g1-input');
+  const typed=inp.value.trim().toUpperCase().replace(/\s+/g,'');
+  const q=g1.words[g1.idx];
+  const correct=typed===q.word;
+  showFeedback(correct);
+  flashArena('g1-arena',correct);
+
+  if(correct){
+    inp.className='type-input correct-inp';
+    document.getElementById('g1-feedback').innerHTML=`<span style="color:var(--teal)">✅ Correct! +${g1.phonicsShown?15:20} XP</span>`;
+    const xp=g1.phonicsShown?15:20;
+    g1.xp+=xp; addXP(xp); onCorrect();
+    document.getElementById('g1-xp').textContent=g1.xp;
+    document.getElementById('g1-streak').textContent=STATE.streak;
+    showStarPop(inp.getBoundingClientRect().left+80,inp.getBoundingClientRect().top);
+    if(STATE.streak>=3&&STATE.streak%3===0)triggerConfetti();
+    setTimeout(()=>g1Advance(),900);
+  } else {
+    inp.className='type-input wrong-inp';
+    document.getElementById('g1-feedback').innerHTML=`<span style="color:var(--coral)">❌ Try again! The word was: <strong>${q.word}</strong></span>`;
+    g1.lives--; renderLives('g1-lives',g1.lives);
+    onWrong();
+    speak('The correct spelling is '+q.word,0.75);
+    if(g1.lives<=0){ setTimeout(()=>g1Advance(),1200); return; }
+  }
+}
+
+function g1Skip(){ speak('Skipped!',1); g1Advance(); }
+
+function g1Advance(){
+  g1.idx++;
+  if(g1.idx>=g1.words.length){ g1GameOver(); return; }
+  g1.lives=3; renderLives('g1-lives',3);
+  g1LoadQuestion();
+}
+
+function g1GameOver(){
+  document.getElementById('g1-feedback').innerHTML=`<span style="color:var(--purple)">🎉 Game Over! You earned <strong>${g1.xp} XP</strong>!</span>`;
+  if(g1.xp>80)triggerConfetti();
+  setTimeout(()=>exitGame(),2500);
+}
+
+// =====================================================================
+// GAME 2 — DRAG THE LETTERS
+// =====================================================================
+let g2={xp:0,score:0,total:0,words:[],idx:0,slotData:[],tileData:[],dragEl:null,ghostEl:null,touchOffsetX:0,touchOffsetY:0};
+
+function initGame2(){
+  g2.xp=0;g2.score=0;g2.idx=0;
+  g2.words=shuffle(getWords()).slice(0,8);
+  g2.total=g2.words.length;
+  document.getElementById('g2-xp').textContent=0;
+  document.getElementById('g2-score').textContent='0/'+g2.total;
+  g2LoadQuestion();
+}
+
+function g2LoadQuestion(){
+  const q=g2.words[g2.idx];
+  document.getElementById('g2-hint').textContent=q.hint||'';
+  STATE.learnedWords.add(q.word);
+  g2.slotData=Array(q.word.length).fill(null);
+
+  // Slots
+  const slotsEl=document.getElementById('g2-slots');
+  slotsEl.innerHTML='';
+  for(let i=0;i<q.word.length;i++){
+    const s=document.createElement('div');
+    s.className='drop-slot';
+    s.dataset.slotIdx=i;
+    s.addEventListener('dragover',e=>{e.preventDefault();s.classList.add('over');});
+    s.addEventListener('dragleave',()=>s.classList.remove('over'));
+    s.addEventListener('drop',e=>{e.preventDefault();s.classList.remove('over');g2DropOnSlot(parseInt(s.dataset.slotIdx));});
+    slotsEl.appendChild(s);
+  }
+
+  // Tiles
+  const letters=shuffle(q.word.split(''));
+  const tilesEl=document.getElementById('g2-tiles');
+  tilesEl.innerHTML='';
+  g2.tileData=letters.map((ch,i)=>({char:ch,slotIdx:null,el:null}));
+  g2.tileData.forEach((td,ti)=>{
+    const t=document.createElement('div');
+    t.className='letter-tile';
+    t.dataset.type=VOWELS.has(td.char)?'vowel':'consonant';
+    t.dataset.tileIdx=ti;
+    t.textContent=td.char;
+    t.draggable=true;
+    t.addEventListener('dragstart',()=>{ g2.dragEl=ti; t.classList.add('dragging'); });
+    t.addEventListener('dragend',()=>{ t.classList.remove('dragging'); });
+    t.addEventListener('touchstart',ev=>g2TouchStart(ev,ti),{passive:true});
+    t.addEventListener('touchmove',ev=>g2TouchMove(ev),{passive:false});
+    t.addEventListener('touchend',ev=>g2TouchEnd(ev));
+    td.el=t;
+    tilesEl.appendChild(t);
+  });
+
+  speak(q.word,0.8);
+}
+
+function g2TouchStart(ev,ti){
+  g2.dragEl=ti;
+  const t=g2.tileData[ti].el;
+  const r=t.getBoundingClientRect();
+  const touch=ev.touches[0];
+  g2.touchOffsetX=touch.clientX-r.left;
+  g2.touchOffsetY=touch.clientY-r.top;
+  g2.ghostEl=t.cloneNode(true);
+  g2.ghostEl.style.cssText=`position:fixed;z-index:9999;opacity:0.85;pointer-events:none;width:${r.width}px;height:${r.height}px;left:${r.left}px;top:${r.top}px;`;
+  document.body.appendChild(g2.ghostEl);
+  t.style.opacity='0.3';
+}
+
+function g2TouchMove(ev){
+  ev.preventDefault();
+  if(!g2.ghostEl)return;
+  const touch=ev.touches[0];
+  g2.ghostEl.style.left=(touch.clientX-g2.touchOffsetX)+'px';
+  g2.ghostEl.style.top=(touch.clientY-g2.touchOffsetY)+'px';
+}
+
+function g2TouchEnd(ev){
+  if(!g2.ghostEl||g2.dragEl===null)return;
+  const touch=ev.changedTouches[0];
+  document.querySelectorAll('.drop-slot').forEach(s=>{
+    const r=s.getBoundingClientRect();
+    if(touch.clientX>=r.left&&touch.clientX<=r.right&&touch.clientY>=r.top&&touch.clientY<=r.bottom){
+      g2DropOnSlot(parseInt(s.dataset.slotIdx));
+    }
+  });
+  if(g2.tileData[g2.dragEl].slotIdx===null)g2.tileData[g2.dragEl].el.style.opacity='1';
+  g2.ghostEl.remove();g2.ghostEl=null;g2.dragEl=null;
+}
+
+function g2DropOnSlot(slotIdx){
+  if(g2.dragEl===null)return;
+  const ti=g2.dragEl;
+  const td=g2.tileData[ti];
+  // If tile is already in a slot, clear that slot first
+  if(td.slotIdx!==null){
+    const oldSlot=document.querySelectorAll('.drop-slot')[td.slotIdx];
+    if(oldSlot){oldSlot.textContent='';oldSlot.className='drop-slot';}
+    g2.slotData[td.slotIdx]=null;
+  }
+  // If target slot already has a tile, return that tile to pool
+  const existingTileIdx=g2.slotData[slotIdx];
+  if(existingTileIdx!==null&&existingTileIdx!==undefined){
+    const exTd=g2.tileData[existingTileIdx];
+    exTd.slotIdx=null;
+    if(exTd.el){exTd.el.style.display='flex';exTd.el.style.opacity='1';}
+  }
+  // Place tile in slot
+  const slot=document.querySelectorAll('.drop-slot')[slotIdx];
+  if(!slot)return;
+  slot.textContent=td.char;
+  slot.className='drop-slot filled';
+  td.slotIdx=slotIdx;
+  g2.slotData[slotIdx]=ti;
+  if(td.el){td.el.style.display='none';}
+  g2.dragEl=null;
+}
+
+
+function g2Check(){
+  const q=g2.words[g2.idx];
+  const formed=g2.slotData.map(ti=>ti!==null?g2.tileData[ti].char:'_').join('');
+  const correct=formed===q.word;
+  showFeedback(correct);
+  flashArena('g2-arena',correct);
+
+  const slots=document.querySelectorAll('.drop-slot');
+  if(correct){
+    slots.forEach(s=>s.classList.add('correct-slot'));
+    g2.score++;g2.xp+=20;addXP(20);onCorrect();
+    document.getElementById('g2-xp').textContent=g2.xp;
+    document.getElementById('g2-score').textContent=g2.score+'/'+g2.total;
+    if(STATE.streak>=3)triggerConfetti();
+    setTimeout(()=>g2Next(),900);
+  } else {
+    slots.forEach((s,i)=>{ if(g2.slotData[i]!==null){s.classList.add(g2.tileData[g2.slotData[i]].char===q.word[i]?'correct-slot':'wrong-slot');} });
+    onWrong();speak('Let me show you... '+q.word,0.8);
+    setTimeout(()=>g2Next(),1800);
+  }
+}
+
+function g2Reset(){
+  g2.tileData.forEach(td=>{
+    if(td.el){td.el.style.display='flex';td.el.style.opacity='1';}
+    td.slotIdx=null;
+  });
+  g2.slotData.fill(null);
+  document.querySelectorAll('.drop-slot').forEach(s=>{s.textContent='';s.className='drop-slot';});
+}
+
+function g2Next(){
+  g2.idx++;
+  if(g2.idx>=g2.words.length){
+    speak('Well done! Game over!',0.9);
+    setTimeout(()=>exitGame(),1500);
+    return;
+  }
+  g2LoadQuestion();
+}
+
+function g2Listen(){ speak(g2.words[g2.idx].word,0.8); }
+
+// =====================================================================
+// GAME 3 — MISSING LETTER
+// =====================================================================
+let g3={xp:0,streak:0,words:[],idx:0,blanks:[],choices:[],filled:{}};
+
+function initGame3(){
+  g3.xp=0;g3.streak=0;g3.idx=0;
+  g3.words=shuffle(getWords()).slice(0,10);
+  document.getElementById('g3-xp').textContent=0;
+  document.getElementById('g3-streak').textContent=0;
+  buildDots('g3-dots',10,0);
+  g3LoadQuestion();
+}
+
+function g3LoadQuestion(){
+  const q=g3.words[g3.idx];
+  STATE.learnedWords.add(q.word);
+  buildDots('g3-dots',10,g3.idx);
+  document.getElementById('g3-hint').textContent=STATE.level==='beginner'?(q.hint||''):'';
+  document.getElementById('g3-feedback').textContent='';
+  g3.filled={};
+
+  // Choose blank positions (1-3 based on level)
+  const numBlanks={beginner:1,intermediate:2,advanced:3}[STATE.level];
+  const possible=[...Array(q.word.length).keys()];
+  g3.blanks=shuffle(possible).slice(0,Math.min(numBlanks,q.word.length));
+
+  // Build word display
+  const wd=document.getElementById('g3-word-display');
+  wd.innerHTML='';
+  q.word.split('').forEach((ch,i)=>{
+    const d=document.createElement('div');
+    d.className='wl-char '+(g3.blanks.includes(i)?'blank':'');
+    d.dataset.pos=i;
+    d.textContent=ch;
+    if(g3.blanks.includes(i)&&g3.blanks.indexOf(i)===0)d.classList.add('active');
+    wd.appendChild(d);
+  });
+
+  // Build choices: correct letters + distractors
+  const correctLetters=[...new Set(g3.blanks.map(i=>q.word[i]))];
+  const allLetters='ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  const distractors=shuffle(allLetters.filter(l=>!correctLetters.includes(l))).slice(0,Math.max(0,4-correctLetters.length));
+  g3.choices=shuffle([...correctLetters,...distractors]).slice(0,4);
+
+  const cc=document.getElementById('g3-choices');
+  cc.innerHTML='';
+  g3.choices.forEach(ch=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn';
+    btn.textContent=ch;
+    btn.onclick=()=>g3Pick(ch,btn);
+    cc.appendChild(btn);
+  });
+
+  speak(q.word,0.8);
+}
+
+function g3Pick(letter,btn){
+  const q=g3.words[g3.idx];
+  const currentBlankIdx=g3.blanks.findIndex(i=>!g3.filled[i]);
+  if(currentBlankIdx===-1)return;
+  const pos=g3.blanks[currentBlankIdx];
+  const correct=letter===q.word[pos];
+
+  const chars=document.querySelectorAll('.wl-char');
+  chars[pos].textContent=letter;
+  chars[pos].classList.remove('blank','active');
+  chars[pos].classList.add(correct?'filled-correct':'filled-wrong');
+
+  if(!correct){
+    btn.classList.add('wrong');
+    onWrong(); showFeedback(false);
+    document.getElementById('g3-feedback').innerHTML=`<span style="color:var(--coral)">❌ The letter was <strong>${q.word[pos]}</strong></span>`;
+    setTimeout(()=>{btn.classList.remove('wrong');},600);
+    g3.filled[pos]=true;
+  } else {
+    btn.classList.add('correct');btn.disabled=true;
+    g3.filled[pos]=true;
+    showFeedback(true);
+    document.getElementById('g3-feedback').innerHTML=`<span style="color:var(--teal)">✅ Correct!</span>`;
+  }
+
+  // Highlight next blank
+  const nextBlankIdx=g3.blanks.findIndex(i=>!g3.filled[i]);
+  if(nextBlankIdx!==-1)chars[g3.blanks[nextBlankIdx]].classList.add('active');
+
+  const allFilled=g3.blanks.every(i=>g3.filled[i]);
+  if(allFilled){
+    const allCorrect=g3.blanks.every(i=>document.querySelectorAll('.wl-char')[i].classList.contains('filled-correct'));
+    if(allCorrect){
+      g3.xp+=15;addXP(15);onCorrect();g3.streak++;
+      document.getElementById('g3-xp').textContent=g3.xp;
+      document.getElementById('g3-streak').textContent=g3.streak;
+      if(g3.streak>=3)triggerConfetti();
+    }
+    setTimeout(()=>{g3.idx++;if(g3.idx<g3.words.length)g3LoadQuestion();else exitGame();},1100);
+  }
+}
+
+function g3Listen(){ speak(g3.words[g3.idx].word,0.8); }
+
+// =====================================================================
+// GAME 4 — PHONICS BUILDER
+// =====================================================================
+let g4={xp:0,score:0,words:[],idx:0,answer:[],correct:[]};
+
+function initGame4(){
+  g4.xp=0;g4.score=0;g4.idx=0;
+  g4.words=shuffle(getWords()).slice(0,10);
+  document.getElementById('g4-xp').textContent=0;
+  document.getElementById('g4-score').textContent=0;
+  buildDots('g4-dots',10,0);
+  g4LoadQuestion();
+}
+
+function g4LoadQuestion(){
+  const q=g4.words[g4.idx];
+  STATE.learnedWords.add(q.word);
+  g4.answer=[];
+  g4.correct=[...q.phonics];
+  buildDots('g4-dots',10,g4.idx);
+  document.getElementById('g4-progress').textContent='Build: '+q.word;
+
+  // Pool (shuffled phonics)
+  const shuffled=shuffle([...q.phonics]);
+  const pool=document.getElementById('g4-pool');
+  pool.innerHTML='';
+  shuffled.forEach((ph,i)=>{
+    const btn=document.createElement('button');
+    btn.className='ph-clickable pool-item '+getPhClass(ph);
+    btn.textContent=ph;
+    btn.dataset.ph=ph;
+    btn.dataset.origIdx=i;
+    btn.onclick=()=>g4Select(btn,ph);
+    pool.appendChild(btn);
+  });
+  document.getElementById('g4-answer').innerHTML='<span style="color:var(--text-lt);font-family:var(--font);font-size:0.9rem">Click phonics above...</span>';
+
+  speak(q.word,0.85);
+}
+
+function g4Select(btn,ph){
+  btn.disabled=true;btn.style.opacity='0.3';
+  g4.answer.push(ph);
+  const ans=document.getElementById('g4-answer');
+  if(ans.querySelector('span'))ans.innerHTML='';
+  const el=document.createElement('div');
+  el.className='ph-clickable ans-item';
+  el.textContent=ph;
+  el.onclick=()=>{
+    // Remove from answer
+    const idx=g4.answer.indexOf(ph);
+    if(idx!==-1)g4.answer.splice(idx,1);
+    el.remove();
+    btn.disabled=false;btn.style.opacity='1';
+    if(ans.children.length===0)ans.innerHTML='<span style="color:var(--text-lt);font-family:var(--font);font-size:0.9rem">Click phonics above...</span>';
+  };
+  ans.appendChild(el);
+  document.getElementById('g4-progress').textContent=g4.answer.join(' + ')+' → '+g4.answer.join('');
+}
+
+function g4Check(){
+  const q=g4.words[g4.idx];
+  const correct=JSON.stringify(g4.answer)===JSON.stringify(g4.correct);
+  const wordMatch=g4.answer.join('')===q.word;
+  const success=correct||wordMatch;
+  showFeedback(success);
+  flashArena('g4-arena',success);
+
+  if(success){
+    g4.xp+=20;addXP(20);g4.score++;onCorrect();
+    document.getElementById('g4-xp').textContent=g4.xp;
+    document.getElementById('g4-score').textContent=g4.score;
+    if(STATE.streak>=3)triggerConfetti();
+    speak('Excellent! '+q.word,0.9);
+    setTimeout(()=>{ g4.idx++;if(g4.idx<g4.words.length)g4LoadQuestion();else exitGame(); },900);
+  } else {
+    onWrong();
+    document.getElementById('g4-progress').textContent='❌ Correct order: '+q.phonics.join(' + ');
+    speak('The correct order is '+q.phonics.join('... '),0.75);
+    setTimeout(()=>{ g4.idx++;if(g4.idx<g4.words.length)g4LoadQuestion();else exitGame(); },1800);
+  }
+}
+
+function g4Reset(){
+  const pool=document.getElementById('g4-pool');
+  pool.querySelectorAll('button').forEach(b=>{b.disabled=false;b.style.opacity='1';});
+  g4.answer=[];
+  document.getElementById('g4-answer').innerHTML='<span style="color:var(--text-lt);font-family:var(--font);font-size:0.9rem">Click phonics above...</span>';
+  document.getElementById('g4-progress').textContent='Build: '+g4.words[g4.idx].word;
+}
+
+function g4Listen(){ speak(g4.words[g4.idx].word,0.8); }
+function g4PlayPhonics(){
+  const q=g4.words[g4.idx];
+  speakPhonics(q.phonics,null,()=>speak(q.word,0.85));
+}
+
+// =====================================================================
+// GAME 5 — SPELL RUNNER
+// =====================================================================
+let g5={xp:0,dist:0,lives:3,words:[],idx:0,timer:null,timeLeft:8,speed:1,running:true};
+
+function initGame5(){
+  g5.xp=0;g5.dist=0;g5.lives=3;g5.idx=0;
+  g5.words=shuffle(getWords()).slice(0,12);
+  g5.speed={beginner:0.7,intermediate:1,advanced:1.5}[STATE.level];
+  document.getElementById('g5-xp').textContent=0;
+  document.getElementById('g5-dist').textContent='0m';
+  renderLives('g5-lives',3);
+  document.getElementById('runnerChar').textContent='🏃';
+  g5NextWord();
+}
+
+function g5NextWord(){
+  clearInterval(g5.timer);
+  if(g5.idx>=g5.words.length){ speak('Amazing! You finished the run!',0.9); setTimeout(()=>exitGame(),1800); return; }
+  const q=g5.words[g5.idx];
+  STATE.learnedWords.add(q.word);
+  document.getElementById('g5-question').textContent='Spell: '+q.word.split('').join(' _ ').replace(/[A-Z]/g,'_')+' ('+q.word.length+' letters)';
+  document.getElementById('g5-input').value='';
+  document.getElementById('g5-input').focus();
+
+  const obs=document.getElementById('runnerObs');
+  obs.textContent='🚧 '+(q.hint||q.word.length+' letters');
+  obs.style.display='block';
+  obs.style.right='-120px';
+  obs.style.transition='none';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    const dur=4/g5.speed;
+    obs.style.transition=`right ${dur}s linear`;
+    obs.style.right='110%';
+  }));
+
+  speak(q.word,0.8);
+  g5.timeLeft={beginner:12,intermediate:9,advanced:7}[STATE.level];
+  const totalTime=g5.timeLeft;
+  document.getElementById('runnerTimer').style.background='linear-gradient(90deg,var(--mint),var(--teal))';
+  document.getElementById('runnerTimer').style.width='100%';
+
+  g5.timer=setInterval(()=>{
+    if(!document.getElementById('game5-screen').classList.contains('active')){clearInterval(g5.timer);return;}
+    g5.timeLeft-=0.15;
+    const pct=Math.max(0,(g5.timeLeft/totalTime)*100);
+    document.getElementById('runnerTimer').style.width=pct+'%';
+    if(pct<25)document.getElementById('runnerTimer').style.background='linear-gradient(90deg,var(--coral),#FF8E8E)';
+    g5.dist+=0.3*g5.speed;
+    document.getElementById('g5-dist').textContent=Math.floor(g5.dist)+'m';
+    if(g5.timeLeft<=0){ clearInterval(g5.timer); g5TimeOut(); }
+  },150);
+  gameTimers.length=0; // clear old refs before pushing new
+  gameTimers.push(g5.timer);
+}
+
+function g5Check(){
+  const typed=document.getElementById('g5-input').value.trim().toUpperCase();
+  const q=g5.words[g5.idx];
+  if(!typed)return;
+  if(typed===q.word){
+    clearInterval(g5.timer);
+    showFeedback(true);
+    document.getElementById('runnerChar').textContent='🎉';
+    document.getElementById('runnerObs').style.display='none';
+    g5.xp+=25;addXP(25);onCorrect();
+    document.getElementById('g5-xp').textContent=g5.xp;
+    if(STATE.streak>=3)triggerConfetti();
+    setTimeout(()=>{ document.getElementById('runnerChar').textContent='🏃'; g5.idx++; g5NextWord(); },600);
+  } else {
+    showFeedback(false);
+    document.getElementById('runnerChar').textContent='😵';
+    document.getElementById('g5-input').value='';
+    speak('Try again!',1);
+    setTimeout(()=>document.getElementById('runnerChar').textContent='🏃',500);
+  }
+}
+
+function g5TimeOut(){
+  onWrong();
+  g5.lives--;renderLives('g5-lives',g5.lives);
+  document.getElementById('runnerChar').textContent='😵';
+  speak('Time up!',1);
+  if(g5.lives<=0){
+    speak('Game over! Try again!',0.9);
+    setTimeout(()=>exitGame(),1800);return;
+  }
+  setTimeout(()=>{ document.getElementById('runnerChar').textContent='🏃'; g5.idx++; g5NextWord(); },800);
+}
+
+// =====================================================================
+// GAME 6 — VOICE REPEAT
+// =====================================================================
+let g6={xp:0,words:[],idx:0,done:0};
+
+function initGame6(){
+  g6.xp=0;g6.idx=0;g6.done=0;
+  g6.words=shuffle(getWords());
+  document.getElementById('g6-xp').textContent=0;
+  document.getElementById('g6-done').textContent='0/'+g6.words.length;
+  buildDots('g6-dots',g6.words.length,0);
+  g6LoadWord();
+}
+
+function g6LoadWord(){
+  const q=g6.words[g6.idx];
+  STATE.learnedWords.add(q.word);
+  buildDots('g6-dots',g6.words.length,g6.idx);
+  document.getElementById('g6-word').textContent=q.word;
+  document.getElementById('g6-sentence').textContent='"'+q.sentence+'"';
+  buildPhonicsBlocks(q.phonics,'g6-phonics');
+  document.getElementById('g6-done').textContent=g6.done+'/'+g6.words.length;
+  speak(q.word,0.8);
+}
+
+function g6Listen(){ speak(g6.words[g6.idx].word,0.75); }
+
+function g6Phonics(){
+  const q=g6.words[g6.idx];
+  speakPhonics(q.phonics,(i)=>buildPhonicsBlocks(q.phonics,'g6-phonics',i),
+    ()=>{ speak(q.word,0.8); buildPhonicsBlocks(q.phonics,'g6-phonics'); });
+}
+
+function g6Repeat(){
+  const q=g6.words[g6.idx];
+  onCorrect();
+  g6.xp+=10;addXP(10);g6.done++;
+  STATE.masteredWords.add(q.word);
+  document.getElementById('g6-xp').textContent=g6.xp;
+  document.getElementById('g6-done').textContent=g6.done+'/'+g6.words.length;
+  showFeedback(true);
+  const btn=document.querySelector('#g6-mic-area .btn');
+  if(btn){btn.textContent='✅ Great!';btn.style.background='linear-gradient(135deg,var(--mint),var(--teal))';}
+  speak('Well done! '+q.word,0.9);
+  setTimeout(()=>{ if(btn){btn.textContent='🎤 I Said It! ✓';btn.style.background='';} },1200);
+}
+
+function g6Next(){
+  g6.idx++;
+  if(g6.idx>=g6.words.length){ speak('Amazing! You practiced all words!',0.9); triggerConfetti(); setTimeout(()=>exitGame(),2000); return; }
+  g6LoadWord();
+}
+
+// =====================================================================
+// LEARN MODE
+// =====================================================================
+let learnState={words:[],idx:0,level:'beginner'};
+
+function initLearn(){
+  learnState.level=STATE.level;
+  learnState.words=WORDS[learnState.level]||WORDS.beginner;
+  learnState.idx=0;
+  showLearnWord();
+}
+
+function setLearnLevel(lv){
+  learnState.level=lv;
+  learnState.words=WORDS[lv]||WORDS.beginner;
+  learnState.idx=0;
+  showLearnWord();
+}
+
+function showLearnWord(){
+  const q=learnState.words[learnState.idx];
+  STATE.learnedWords.add(q.word);
+  document.getElementById('learn-word').textContent=q.word;
+  document.getElementById('learn-sentence').textContent=q.sentence;
+  document.getElementById('learn-hint').textContent=q.hint||'';
+  document.getElementById('learn-idx').textContent='Word '+(learnState.idx+1)+' of '+learnState.words.length;
+  buildPhonicsBlocks(q.phonics,'learn-phonics-row');
+  speak(q.word,0.8);
+}
+
+function learnListen(){ speak(learnState.words[learnState.idx].word,0.75); }
+
+function learnPhonics(){
+  const q=learnState.words[learnState.idx];
+  speakPhonics(q.phonics,(i)=>buildPhonicsBlocks(q.phonics,'learn-phonics-row',i),
+    ()=>{ speak(q.word,0.85); buildPhonicsBlocks(q.phonics,'learn-phonics-row'); });
+}
+
+function learnNext(){ learnState.idx=Math.min(learnState.idx+1,learnState.words.length-1); showLearnWord(); }
+function learnPrev(){ learnState.idx=Math.max(learnState.idx-1,0); showLearnWord(); }
+
+// =====================================================================
+// DASHBOARD
+// =====================================================================
+const ACHIEVEMENTS=[
+  {id:'first_word',   label:'First Word',   icon:'🌱', desc:'Practice your first word',      check:()=>STATE.learnedWords.size>=1},
+  {id:'ten_words',    label:'10 Words',     icon:'📚', desc:'Practice 10 different words',   check:()=>STATE.learnedWords.size>=10},
+  {id:'all_words',    label:'Word Master',  icon:'🏆', desc:'Practice all words in a level', check:()=>STATE.learnedWords.size>=20},
+  {id:'streak_3',     label:'On Fire!',     icon:'🔥', desc:'Get a 3-word streak',            check:()=>STATE.bestStreak>=3},
+  {id:'streak_5',     label:'Blazing!',     icon:'💥', desc:'Get a 5-word streak',            check:()=>STATE.bestStreak>=5},
+  {id:'xp_100',       label:'XP Hunter',    icon:'⭐', desc:'Earn 100 XP',                   check:()=>STATE.xp>=100},
+  {id:'accuracy_80',  label:'Sharp Mind',   icon:'🎯', desc:'Reach 80% accuracy',             check:()=>STATE.accuracy>=80},
+  {id:'level_3',      label:'Level 3',      icon:'🚀', desc:'Reach player level 3',           check:()=>STATE.playerLevel>=3},
+  {id:'mastered_5',   label:'5 Mastered',   icon:'✅', desc:'Master 5 words in Voice mode',  check:()=>STATE.masteredWords.size>=5},
+];
+
+function updateDashboard(){
+  document.getElementById('d-xp').textContent=STATE.xp;
+  document.getElementById('d-lv').textContent=STATE.playerLevel;
+  document.getElementById('d-acc').textContent=STATE.accuracy+'%';
+  document.getElementById('d-streak').textContent=STATE.bestStreak;
+  document.getElementById('d-words').textContent=STATE.learnedWords.size;
+  document.getElementById('d-mastered').textContent=STATE.masteredWords.size;
+
+  const bg=document.getElementById('badges');
+  bg.innerHTML='';
+  ACHIEVEMENTS.forEach(a=>{
+    const d=document.createElement('div');
+    d.className='badge'+(a.check()?' earned':'');
+    d.textContent=a.icon+' '+a.label;
+    d.title=a.desc;
+    bg.appendChild(d);
+  });
+}
+
+
+
+// =====================================================================
+// FULLSCREEN
+// =====================================================================
+function updateFullscreenUI() {
+  const btn = document.getElementById('fsToggle');
+  if (!btn) return;
+  const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+  // Toggle icons via JS (more reliable than CSS-only approach)
+  const enterIcon = btn.querySelector('.icon-enter');
+  const exitIcon  = btn.querySelector('.icon-exit');
+  if (enterIcon) enterIcon.style.display = isFS ? 'none'  : 'block';
+  if (exitIcon)  exitIcon.style.display  = isFS ? 'block' : 'none';
+  btn.title = isFS ? 'Exit Fullscreen' : 'Toggle Fullscreen';
+}
+
+function toggleFullScreen() {
+  const elem = document.documentElement;
+  const isFS = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+
+  if (!isFS) {
+    // Enter fullscreen — try each vendor prefix, catch any rejection
+    const req = elem.requestFullscreen       ? elem.requestFullscreen()
+              : elem.webkitRequestFullscreen ? elem.webkitRequestFullscreen()
+              : elem.mozRequestFullScreen    ? elem.mozRequestFullScreen()
+              : elem.msRequestFullscreen     ? elem.msRequestFullscreen()
+              : null;
+    if (req && typeof req.catch === 'function') {
+      req.catch(err => console.warn('Fullscreen request failed:', err));
+    }
+  } else {
+    // Exit fullscreen
+    const exit = document.exitFullscreen       ? document.exitFullscreen()
+               : document.webkitExitFullscreen ? document.webkitExitFullscreen()
+               : document.mozCancelFullScreen  ? document.mozCancelFullScreen()
+               : document.msExitFullscreen     ? document.msExitFullscreen()
+               : null;
+    if (exit && typeof exit.catch === 'function') {
+      exit.catch(err => console.warn('Exit fullscreen failed:', err));
+    }
+  }
+}
+
+// Sync icon whenever fullscreen state changes (all vendor prefixes)
+['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
+  document.addEventListener(evt, updateFullscreenUI);
+});
+
+// =====================================================================
+// DEFAULT LEVEL SELECT
+// =====================================================================
+document.querySelectorAll('.level-card')[1].classList.add('selected');
+STATE.level='intermediate';
+
+// Trigger screen via URL hash or default
+updateMenuHud();
+</script>
+</body>
+</html>
